@@ -18,7 +18,7 @@ public class DBConnection {
 
     private static final String JDBC_URL = "jdbc:h2:~/test;AUTO_SERVER=TRUE"; // Use the appropriate path and database name
     private static final String USER = "sa";
-    private static final String PASSWORD = "test";
+    private static final String PASSWORD = "";
 
     public static Connection getConnection() throws SQLException {
         return DriverManager.getConnection(JDBC_URL, USER, PASSWORD);
