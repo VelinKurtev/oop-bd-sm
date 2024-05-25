@@ -1,5 +1,8 @@
 com/pu_fmi/oop_bd_sm/ProductTableView.class
 com/pu_fmi/oop_bd_sm/MainWindow.class
+com/pu_fmi/oop_bd_sm/ClientsTableView$2.class
+com/pu_fmi/oop_bd_sm/ClientsTableView$3.class
 com/pu_fmi/oop_bd_sm/ClientsTableView.class
+com/pu_fmi/oop_bd_sm/ClientsTableView$1.class
 com/pu_fmi/oop_bd_sm/Entities/DBConnection.class
 com/pu_fmi/oop_bd_sm/MainWindow$1.class
