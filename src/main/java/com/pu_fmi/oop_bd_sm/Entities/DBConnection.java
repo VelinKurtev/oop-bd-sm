@@ -25,35 +25,11 @@ public class DBConnection {
     }
 
     public static void Init() throws SQLException {
-        String initMigration = "-- Create the Category_Product table\n"
-                + "CREATE TABLE IF NOT EXISTS Category_Product (\n"
-                + "    id INT PRIMARY KEY AUTO_INCREMENT,\n"
-                + "    category_name VARCHAR(255) NOT NULL UNIQUE\n"
-                + ");\n"
-                + "\n"
-                + "-- Create the Product table\n"
+        String initMigration = "-- Create the Product table\n"
                 + "CREATE TABLE IF NOT EXISTS Product (\n"
                 + "    id INT PRIMARY KEY AUTO_INCREMENT,\n"
                 + "    name VARCHAR(255) NOT NULL,\n"
-                + "    Category_Product INT NOT NULL,\n"
-                + "    price DECIMAL(10, 2) NOT NULL CHECK (price >= 0),\n"
-                + "    FOREIGN KEY (Category_Product) REFERENCES Category_Product(id)\n"
-                + ");\n"
-                + "\n"
-                + "-- Create the Warehouse table\n"
-                + "CREATE TABLE IF NOT EXISTS Warehouse (\n"
-                + "    id INT PRIMARY KEY AUTO_INCREMENT,\n"
-                + "    location VARCHAR(255) NOT NULL,\n"
-                + "    name VARCHAR(255) NOT NULL UNIQUE\n"
-                + ");\n"
-                + "\n"
-                + "-- Create the Warehouse_Products table\n"
-                + "CREATE TABLE IF NOT EXISTS Warehouse_Products (\n"
-                + "    Warehouse_id INT,\n"
-                + "    Product_id INT,\n"
-                + "    PRIMARY KEY (Warehouse_id, Product_id),\n"
-                + "    FOREIGN KEY (Warehouse_id) REFERENCES Warehouse(id),\n"
-                + "    FOREIGN KEY (Product_id) REFERENCES Product(id)\n"
+                + "    price DECIMAL(10, 2) NOT NULL\n"
                 + ");\n"
                 + "\n"
                 + "-- Create the Client table\n"
@@ -61,7 +37,7 @@ public class DBConnection {
                 + "    id INT PRIMARY KEY AUTO_INCREMENT,\n"
                 + "    address VARCHAR(255) NOT NULL,\n"
                 + "    name VARCHAR(255) NOT NULL,\n"
-                + "    phone VARCHAR(15) NOT NULL UNIQUE CHECK (phone REGEXP '^[0-9]+$')\n"
+                + "    phone VARCHAR(15) NOT NULL UNIQUE\n"
                 + ");\n"
                 + "\n"
                 + "-- Create the Orders table\n"
@@ -72,17 +48,14 @@ public class DBConnection {
                 + "    quantity INT NOT NULL CHECK (quantity > 0),\n"
                 + "    created_at DATETIME NOT NULL,\n"
                 + "    delivered_at DATETIME,\n"
-                + "    delivered_from INT,\n"
+                + "    delivered_from VARCHAR(255),\n"
                 + "    FOREIGN KEY (Client_id) REFERENCES Client(id),\n"
-                + "    FOREIGN KEY (Product_id) REFERENCES Product(id),\n"
-                + "    FOREIGN KEY (delivered_from) REFERENCES Warehouse(id),\n"
-                + "    CHECK (delivered_at IS NULL OR delivered_at >= created_at)\n"
-                + ");";
+                + "    FOREIGN KEY (Product_id) REFERENCES Product(id)\n" +
+        ")";
         Connection connection = DBConnection.getConnection();
         Statement statement = connection.createStatement();
         statement.execute(initMigration);
-        
-        
+
         return;
     }
 }
