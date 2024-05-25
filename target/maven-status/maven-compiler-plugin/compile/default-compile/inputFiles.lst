@@ -1,4 +1,6 @@
 /home/amtis/NetBeansProjects/OOP_BD_SM/src/main/java/com/pu_fmi/oop_bd_sm/MainWindow.java
 /home/amtis/NetBeansProjects/OOP_BD_SM/src/main/java/com/pu_fmi/oop_bd_sm/ProductTableView.java
 /home/amtis/NetBeansProjects/OOP_BD_SM/src/main/java/com/pu_fmi/oop_bd_sm/ClientsTableView.java
+/home/amtis/NetBeansProjects/OOP_BD_SM/src/main/java/com/pu_fmi/oop_bd_sm/ProductsCustomerGraph.java
 /home/amtis/NetBeansProjects/OOP_BD_SM/src/main/java/com/pu_fmi/oop_bd_sm/Entities/DBConnection.java
+/home/amtis/NetBeansProjects/OOP_BD_SM/src/main/java/com/pu_fmi/oop_bd_sm/OrderTableView.java

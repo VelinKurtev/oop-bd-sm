@@ -18,7 +18,7 @@ public class DBConnection {
 
     private static final String JDBC_URL = "jdbc:h2:~/test;AUTO_SERVER=TRUE"; // Use the appropriate path and database name
     private static final String USER = "sa";
-    private static final String PASSWORD = "";
+    private static final String PASSWORD = "test";
 
     public static Connection getConnection() throws SQLException {
         return DriverManager.getConnection(JDBC_URL, USER, PASSWORD);
@@ -28,8 +28,9 @@ public class DBConnection {
         String initMigration = "-- Create the Product table\n"
                 + "CREATE TABLE IF NOT EXISTS Product (\n"
                 + "    id INT PRIMARY KEY AUTO_INCREMENT,\n"
-                + "    name VARCHAR(255) NOT NULL,\n"
-                + "    price DECIMAL(10, 2) NOT NULL\n"
+                + "    name VARCHAR(255) NOT NULL UNIQUE ,\n"
+                + "    price DECIMAL(10, 2) NOT NULL CHECK (price > 0),\n"
+                +"     QUANTITY INTEGER NOT NULL CHECK (quantity > 0)"
                 + ");\n"
                 + "\n"
                 + "-- Create the Client table\n"
@@ -49,8 +50,8 @@ public class DBConnection {
                 + "    created_at DATETIME NOT NULL,\n"
                 + "    delivered_at DATETIME,\n"
                 + "    delivered_from VARCHAR(255),\n"
-                + "    FOREIGN KEY (Client_id) REFERENCES Client(id),\n"
-                + "    FOREIGN KEY (Product_id) REFERENCES Product(id)\n" +
+                + "    FOREIGN KEY (Client_id) REFERENCES Client(id) ON DELETE CASCADE,\n"
+                + "    FOREIGN KEY (Product_id) REFERENCES Product(id) ON DELETE CASCADE\n" +
         ")";
         Connection connection = DBConnection.getConnection();
         Statement statement = connection.createStatement();

@@ -85,8 +85,8 @@ public class ClientsTableView extends javax.swing.JPanel {
                 int column = e.getColumn();
                 if (row >= 0 && column >= 0) {
                     DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
-                    JOptionPane.showMessageDialog(null, model.getValueAt(row, 0));
-
+                    Object[] updatedModel = {model.getValueAt(row, 0), model.getValueAt(row, 1), model.getValueAt(row, 2), model.getValueAt(row, 3)};
+                    updateRow(updatedModel);
                 }
             }
         });
@@ -171,6 +171,38 @@ public class ClientsTableView extends javax.swing.JPanel {
                     .getName()).log(Level.SEVERE, null, ex);
         }
 
+    }
+
+    private void updateRow(Object[] updatedModel) {
+        try {
+            // Establish connection to the database
+            Connection connection = DBConnection.getConnection();
+
+            // Prepare the SQL statement to update the row
+            String sql = "UPDATE CLIENT SET NAME = ?, ADDRESS = ?, PHONE = ? WHERE ID = ?";
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setString(1, (String) updatedModel[1]);
+            statement.setString(2, ((String) updatedModel[2]));
+            statement.setString(3, (String) updatedModel[3]);
+            statement.setInt(4, Integer.parseInt((String) updatedModel[0]));
+
+            // Execute the update statement
+            int rowsAffected = statement.executeUpdate();
+
+            // Check if the update was successful
+            if (rowsAffected > 0) {
+                System.out.println("Row updated successfully in the database.");
+            } else {
+                System.out.println("Failed to update row in the database.");
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        catch (Exception ex) {
+            System.out.println("generic error2");
+            ex.printStackTrace();
+
+        }
     }
 
     /**
@@ -350,7 +382,13 @@ public class ClientsTableView extends javax.swing.JPanel {
 
             model.removeRow(selectedRowIndex);
         } catch (SQLException ex) {
+            System.out.println("sql error");
+
+            ex.printStackTrace();
             JOptionPane.showMessageDialog(null, "Error occured, try again");
+        } catch (Exception ex) {
+            System.out.println("generic error");
+            ex.printStackTrace();
 
         }
 
