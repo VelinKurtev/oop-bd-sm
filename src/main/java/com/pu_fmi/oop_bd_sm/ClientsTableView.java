@@ -4,6 +4,24 @@
  */
 package com.pu_fmi.oop_bd_sm;
 
+import com.pu_fmi.oop_bd_sm.Entities.DBConnection;
+import java.awt.Color;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.sql.Array;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JOptionPane;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+import javax.swing.table.DefaultTableModel;
+
 /**
  *
  * @author amtis
@@ -15,6 +33,85 @@ public class ClientsTableView extends javax.swing.JPanel {
      */
     public ClientsTableView() {
         initComponents();
+        fetchRows();
+        ClientSearchTextBox.addFocusListener(new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                if (ClientSearchTextBox.getText().equals("Search")) {
+                    ClientSearchTextBox.setText("");
+                    ClientSearchTextBox.setForeground(Color.BLACK);
+                }
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                if (ClientSearchTextBox.getText().isEmpty()) {
+                    ClientSearchTextBox.setForeground(Color.GRAY);
+                    ClientSearchTextBox.setText("Search");
+                }
+                fetchRows();
+
+            }
+
+        });
+        
+        jTable1.getModel().addTableModelListener(new TableModelListener() {
+            @Override
+            public void tableChanged(TableModelEvent e) {
+                int row = e.getFirstRow();
+                int column = e.getColumn();
+                if (row >= 0 && column >= 0) {
+                    DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+                   
+                        
+                }
+            }
+        });
+    }
+
+    private void fetchRows() {
+
+        try {
+            Connection connection = DBConnection.getConnection();
+
+            String sql = "SELECT ID,NAME,ADDRESS,PHONE FROM CLIENT";
+            if (!ClientSearchTextBox.getText().equals("Search")) {
+                sql += " WHERE lower(name) LIKE ?";
+            }
+            PreparedStatement statement = connection.prepareStatement(sql);
+
+            if (!ClientSearchTextBox.getText().equals("Search")) {
+                statement.setString(1, "%" + ClientSearchTextBox.getText().toLowerCase() + "%");
+            }
+
+            ResultSet resultSet = statement.executeQuery();
+
+            int columnCount = resultSet.getMetaData().getColumnCount();
+
+            // Use ArrayList to dynamically store the results
+            ArrayList<Object[]> results = new ArrayList<>();
+
+            while (resultSet.next()) {
+                Object[] rowData = new Object[columnCount];
+                for (int col = 0; col < columnCount; col++) {
+                    rowData[col] = resultSet.getString(col + 1);
+                }
+                results.add(rowData);
+            }
+
+            // Convert ArrayList to array
+            Object[][] dataArray = new Object[results.size()][];
+            for (int i = 0; i < results.size(); i++) {
+                dataArray[i] = results.get(i);
+            }
+
+            jTable1.setModel(new javax.swing.table.DefaultTableModel(dataArray, new String[]{"ID","Name", "Address", "Phone"}));
+            jTable1.removeColumn(jTable1.getColumnModel().getColumn(0));
+          
+        } catch (SQLException ex) {
+            Logger.getLogger(ClientsTableView.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
     }
 
     /**
@@ -26,19 +123,67 @@ public class ClientsTableView extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jLabel1 = new javax.swing.JLabel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jTable1 = new javax.swing.JTable();
+        ClientSearchTextBox = new javax.swing.JTextField();
+
+        jLabel1.setText("Clients Information");
+
+        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null},
+                {null, null, null},
+                {null, null, null},
+                {null, null, null}
+            },
+            new String [] {
+                "Name", "Address", "Phone"
+            }
+        ));
+        jTable1.setColumnSelectionAllowed(true);
+        jScrollPane1.setViewportView(jTable1);
+        jTable1.getColumnModel().getSelectionModel().setSelectionMode(javax.swing.ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+
+        ClientSearchTextBox.setText("Search");
+        ClientSearchTextBox.setCursor(new java.awt.Cursor(java.awt.Cursor.TEXT_CURSOR));
+        ClientSearchTextBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                ClientSearchTextBoxActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 139, Short.MAX_VALUE)
+                .addComponent(ClientSearchTextBox, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(ClientSearchTextBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 275, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void ClientSearchTextBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ClientSearchTextBoxActionPerformed
+        fetchRows();
+    }//GEN-LAST:event_ClientSearchTextBoxActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JTextField ClientSearchTextBox;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JTable jTable1;
     // End of variables declaration//GEN-END:variables
 }
