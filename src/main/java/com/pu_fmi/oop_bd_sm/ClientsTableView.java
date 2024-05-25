@@ -17,10 +17,12 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import javax.swing.JOptionPane;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
+import org.h2.jdbc.JdbcSQLIntegrityConstraintViolationException;
 
 /**
  *
@@ -37,7 +39,7 @@ public class ClientsTableView extends javax.swing.JPanel {
         ClientSearchTextBox.addFocusListener(new FocusListener() {
             @Override
             public void focusGained(FocusEvent e) {
-                if (ClientSearchTextBox.getText().equals("Search")) {
+                if (ClientSearchTextBox.getText().equals("Search by Name")) {
                     ClientSearchTextBox.setText("");
                     ClientSearchTextBox.setForeground(Color.BLACK);
                 }
@@ -47,14 +49,35 @@ public class ClientsTableView extends javax.swing.JPanel {
             public void focusLost(FocusEvent e) {
                 if (ClientSearchTextBox.getText().isEmpty()) {
                     ClientSearchTextBox.setForeground(Color.GRAY);
-                    ClientSearchTextBox.setText("Search");
+                    ClientSearchTextBox.setText("Search by Name");
                 }
                 fetchRows();
 
             }
 
         });
-        
+
+        addressSearchBar.addFocusListener(new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                if (addressSearchBar.getText().equals("Search by Address")) {
+                    addressSearchBar.setText("");
+                    addressSearchBar.setForeground(Color.BLACK);
+                }
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                if (addressSearchBar.getText().isEmpty()) {
+                    addressSearchBar.setForeground(Color.GRAY);
+                    addressSearchBar.setText("Search by Address");
+                }
+                fetchRows();
+
+            }
+
+        });
+
         jTable1.getModel().addTableModelListener(new TableModelListener() {
             @Override
             public void tableChanged(TableModelEvent e) {
@@ -62,26 +85,50 @@ public class ClientsTableView extends javax.swing.JPanel {
                 int column = e.getColumn();
                 if (row >= 0 && column >= 0) {
                     DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
-                   
-                        
+                    JOptionPane.showMessageDialog(null, model.getValueAt(row, 0));
+
                 }
             }
         });
+
     }
 
     private void fetchRows() {
 
         try {
             Connection connection = DBConnection.getConnection();
+            boolean haveClient = !ClientSearchTextBox.getText().equals("Search by Name");
+            boolean haveAddress = !addressSearchBar.getText().equals("Search by Address");
 
-            String sql = "SELECT ID,NAME,ADDRESS,PHONE FROM CLIENT";
-            if (!ClientSearchTextBox.getText().equals("Search")) {
-                sql += " WHERE lower(name) LIKE ?";
+            String sql = "SELECT c.ID,c.NAME,c.ADDRESS,c.PHONE, CONCAT(COALESCE (SUM(o.quantity * p.price),0)  , '$') AS total_purchases  FROM CLIENT c";
+
+            sql += " LEFT JOIN \n"
+                    + "    Orders o ON c.id = o.Client_id\n"
+                    + "LEFT JOIN \n"
+                    + "    Product p ON o.Product_id = p.id\n";
+
+            if (haveAddress && haveClient) {
+                sql += " WHERE lower(c.name) LIKE ? AND lower(c.address) LIKE ?";
+
+            } else if (haveClient) {
+                sql += " WHERE lower(c.name) LIKE ?";
+            } else if (haveAddress) {
+                sql += " WHERE lower(c.address) LIKE ?";
+
             }
+            sql += " GROUP BY \n"
+                    + "    c.ID,c.NAME,c.ADDRESS,c.PHONE";
             PreparedStatement statement = connection.prepareStatement(sql);
 
-            if (!ClientSearchTextBox.getText().equals("Search")) {
+            if (haveAddress && haveClient) {
                 statement.setString(1, "%" + ClientSearchTextBox.getText().toLowerCase() + "%");
+                statement.setString(2, "%" + addressSearchBar.getText().toLowerCase() + "%");
+
+            } else if (haveClient) {
+                statement.setString(1, "%" + ClientSearchTextBox.getText().toLowerCase() + "%");
+            } else if (haveAddress) {
+                statement.setString(1, "%" + addressSearchBar.getText().toLowerCase() + "%");
+
             }
 
             ResultSet resultSet = statement.executeQuery();
@@ -105,11 +152,23 @@ public class ClientsTableView extends javax.swing.JPanel {
                 dataArray[i] = results.get(i);
             }
 
-            jTable1.setModel(new javax.swing.table.DefaultTableModel(dataArray, new String[]{"ID","Name", "Address", "Phone"}));
+            jTable1.setModel(
+                    new javax.swing.table.DefaultTableModel(dataArray, new String[]{"ID", "Name", "Address", "Phone", "Purchases"}) {
+                boolean[] canEdit = new boolean[]{
+                    true, true, true, true, false
+                };
+
+                @Override
+                public boolean isCellEditable(int rowIndex, int columnIndex) {
+                    return canEdit[columnIndex];
+                }
+
+            });
             jTable1.removeColumn(jTable1.getColumnModel().getColumn(0));
-          
+
         } catch (SQLException ex) {
-            Logger.getLogger(ClientsTableView.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ClientsTableView.class
+                    .getName()).log(Level.SEVERE, null, ex);
         }
 
     }
@@ -127,25 +186,41 @@ public class ClientsTableView extends javax.swing.JPanel {
         jScrollPane1 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
         ClientSearchTextBox = new javax.swing.JTextField();
+        deleteButton = new javax.swing.JButton();
+        nameToAddTField = new javax.swing.JTextField();
+        addressToAddTField = new javax.swing.JTextField();
+        phoneToAddTField = new javax.swing.JTextField();
+        jButton1 = new javax.swing.JButton();
+        jLabel2 = new javax.swing.JLabel();
+        addressSearchBar = new javax.swing.JTextField();
 
+        jLabel1.setFont(new java.awt.Font("Liberation Sans", 3, 24)); // NOI18N
         jLabel1.setText("Clients Information");
 
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null}
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
             },
             new String [] {
-                "Name", "Address", "Phone"
+                "Name", "Address", "Phone", "Purchases"
             }
-        ));
+        ) {
+            boolean[] canEdit = new boolean [] {
+                true, true, true, false
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
         jTable1.setColumnSelectionAllowed(true);
         jScrollPane1.setViewportView(jTable1);
         jTable1.getColumnModel().getSelectionModel().setSelectionMode(javax.swing.ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 
-        ClientSearchTextBox.setText("Search");
+        ClientSearchTextBox.setText("Search by Name");
         ClientSearchTextBox.setCursor(new java.awt.Cursor(java.awt.Cursor.TEXT_CURSOR));
         ClientSearchTextBox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -153,25 +228,95 @@ public class ClientsTableView extends javax.swing.JPanel {
             }
         });
 
+        deleteButton.setText("Delete Selected");
+        deleteButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                deleteButtonActionPerformed(evt);
+            }
+        });
+
+        nameToAddTField.setText("Name");
+        nameToAddTField.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                nameToAddTFieldActionPerformed(evt);
+            }
+        });
+
+        addressToAddTField.setText("Address");
+        addressToAddTField.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                addressToAddTFieldActionPerformed(evt);
+            }
+        });
+
+        phoneToAddTField.setText("Phone");
+        phoneToAddTField.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                phoneToAddTFieldActionPerformed(evt);
+            }
+        });
+
+        jButton1.setText("Add");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
+        jLabel2.setText("New Client");
+
+        addressSearchBar.setText("Search by Address");
+        addressSearchBar.setCursor(new java.awt.Cursor(java.awt.Cursor.TEXT_CURSOR));
+        addressSearchBar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                addressSearchBarActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 548, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 139, Short.MAX_VALUE)
-                .addComponent(ClientSearchTextBox, javax.swing.GroupLayout.PREFERRED_SIZE, 115, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 99, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(nameToAddTField, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(addressToAddTField, javax.swing.GroupLayout.PREFERRED_SIZE, 96, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(phoneToAddTField)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 112, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 267, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(addressSearchBar)
+                    .addComponent(ClientSearchTextBox)
+                    .addComponent(deleteButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addComponent(ClientSearchTextBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(ClientSearchTextBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(addressSearchBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(deleteButton)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 275, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 242, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(9, 9, 9)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(nameToAddTField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(addressToAddTField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(phoneToAddTField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton1)
+                    .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -179,11 +324,150 @@ public class ClientsTableView extends javax.swing.JPanel {
         fetchRows();
     }//GEN-LAST:event_ClientSearchTextBoxActionPerformed
 
+    private void deleteButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteButtonActionPerformed
+        try {
+            int selectedRowIndex = jTable1.getSelectedRow();
+
+            // Check if a row is selected
+            if (selectedRowIndex == -1) {
+                JOptionPane.showMessageDialog(this, "Please select a row to delete.", "No Row Selected", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            DefaultTableModel model = ((DefaultTableModel) jTable1.getModel());
+
+            String id = (String) model.getValueAt(selectedRowIndex, 0);
+
+            Connection connection = DBConnection.getConnection();
+
+            String sql = "DELETE FROM CLIENT WHERE ID=?";
+
+            PreparedStatement statement = connection.prepareStatement(sql);
+
+            statement.setInt(1, Integer.valueOf(id));
+
+            statement.execute();
+
+            model.removeRow(selectedRowIndex);
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(null, "Error occured, try again");
+
+        }
+
+
+    }//GEN-LAST:event_deleteButtonActionPerformed
+
+    private void nameToAddTFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nameToAddTFieldActionPerformed
+        String name = nameToAddTField.getText().trim();
+        if (name.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Name cannot be empty", "Error", JOptionPane.ERROR_MESSAGE);
+            nameToAddTField.setForeground(Color.red);
+            return;
+        }
+        nameToAddTField.setForeground(Color.BLACK);
+
+    }//GEN-LAST:event_nameToAddTFieldActionPerformed
+
+    private void addressToAddTFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addressToAddTFieldActionPerformed
+        String address = addressToAddTField.getText().trim();
+        if (address.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Address cannot be empty", "Error", JOptionPane.ERROR_MESSAGE);
+            addressToAddTField.setForeground(Color.red);
+            return;
+        }
+        addressToAddTField.setForeground(Color.BLACK);
+
+    }//GEN-LAST:event_addressToAddTFieldActionPerformed
+
+    private void phoneToAddTFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_phoneToAddTFieldActionPerformed
+        String phone = phoneToAddTField.getText().trim();
+
+        // Define a regular expression pattern for a valid phone number format
+        String phonePattern = "(" + "\\" + "+359|0)[0-9]{9,9}"; // Allows optional '+' sign and at least 10 digits
+
+        // Compile the regular expression pattern
+        Pattern pattern = Pattern.compile(phonePattern);
+
+        // Check if the input matches the pattern
+        if (!pattern.matcher(phone).matches()) {
+            JOptionPane.showMessageDialog(this, "Invalid phone number format", "Error", JOptionPane.ERROR_MESSAGE);
+            phoneToAddTField.setForeground(Color.red);
+            return;
+        }
+        phoneToAddTField.setForeground(Color.BLACK);
+
+    }//GEN-LAST:event_phoneToAddTFieldActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        try {
+            String phone = phoneToAddTField.getText().trim();
+
+            // Define a regular expression pattern for a valid phone number format
+            String phonePattern = "(" + "\\" + "+359|0)[0-9]{9,9}"; // Allows optional '+' sign and at least 10 digits
+
+            // Compile the regular expression pattern
+            Pattern pattern = Pattern.compile(phonePattern);
+
+            // Check if the input matches the pattern
+            if (!pattern.matcher(phone).matches()) {
+                JOptionPane.showMessageDialog(this, "Invalid phone number format", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            String address = addressToAddTField.getText().trim();
+            if (address.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Address cannot be empty", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            String name = nameToAddTField.getText().trim();
+            if (name.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Name cannot be empty", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            Connection connection = DBConnection.getConnection();
+
+            String sql = "INSERT INTO CLIENT (NAME,ADDRESS,PHONE) VALUES(?,?,?)";
+
+            PreparedStatement statement = connection.prepareStatement(sql);
+
+            statement.setString(1, name);
+            statement.setString(2, address);
+            statement.setString(3, phone);
+
+            statement.execute();
+
+            fetchRows();
+
+            phoneToAddTField.setText("");
+            addressToAddTField.setText("");
+
+            nameToAddTField.setText("");
+        } catch (JdbcSQLIntegrityConstraintViolationException ex) {
+            JOptionPane.showMessageDialog(this, "Phone duplicated", "Error", JOptionPane.ERROR_MESSAGE);
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Address cannot be empty", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+
+    }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void addressSearchBarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addressSearchBarActionPerformed
+        fetchRows();
+    }//GEN-LAST:event_addressSearchBarActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextField ClientSearchTextBox;
+    private javax.swing.JTextField addressSearchBar;
+    private javax.swing.JTextField addressToAddTField;
+    private javax.swing.JButton deleteButton;
+    private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTable jTable1;
+    private javax.swing.JTextField nameToAddTField;
+    private javax.swing.JTextField phoneToAddTField;
     // End of variables declaration//GEN-END:variables
 }
