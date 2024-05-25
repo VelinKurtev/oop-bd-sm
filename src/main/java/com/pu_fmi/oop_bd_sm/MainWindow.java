@@ -22,6 +22,9 @@ public class MainWindow extends javax.swing.JFrame {
         initComponents();
         jTabbedPane1.addTab("Clients",new ClientsTableView());
         jTabbedPane1.addTab("Products",new ProductTableView());
+        jTabbedPane1.addTab("Orders",new OrderTableView());
+        jTabbedPane1.addTab("Graph",new ProductsCustomerGraph());
+
 
     }
 
