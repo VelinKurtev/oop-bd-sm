@@ -25,14 +25,14 @@ public class DBConnection {
     }
 
     public static void Init() throws SQLException {
-        String initMigration = "-- Create the Product table\n"
-                + "CREATE TABLE IF NOT EXISTS Product (\n"
+        String initMigration = 
+                "CREATE TABLE IF NOT EXISTS Product (\n"
                 + "    id INT PRIMARY KEY AUTO_INCREMENT,\n"
                 + "    name VARCHAR(255) NOT NULL,\n"
-                + "    price DECIMAL(10, 2) NOT NULL\n"
+                + "    price DECIMAL(10, 2) NOT NULL,\n"                
+                + "    quantity INT NOT NULL\n"
                 + ");\n"
                 + "\n"
-                + "-- Create the Client table\n"
                 + "CREATE TABLE IF NOT EXISTS Client (\n"
                 + "    id INT PRIMARY KEY AUTO_INCREMENT,\n"
                 + "    address VARCHAR(255) NOT NULL,\n"
@@ -40,7 +40,6 @@ public class DBConnection {
                 + "    phone VARCHAR(15) NOT NULL UNIQUE\n"
                 + ");\n"
                 + "\n"
-                + "-- Create the Orders table\n"
                 + "CREATE TABLE IF NOT EXISTS Orders (\n"
                 + "    id INT PRIMARY KEY AUTO_INCREMENT,\n"
                 + "    Client_id INT NOT NULL,\n"
