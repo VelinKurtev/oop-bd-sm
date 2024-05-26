@@ -13,6 +13,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
@@ -31,7 +32,7 @@ public class OrderTableView extends javax.swing.JPanel {
     public OrderTableView() {
         initComponents();
         fetchRows();
-        
+
         ProductSearchTextBox1.addFocusListener(new FocusListener() {
             @Override
             public void focusGained(FocusEvent e) {
@@ -50,7 +51,26 @@ public class OrderTableView extends javax.swing.JPanel {
                 fetchRows();
             }
         });
-        
+
+        ClientSearchTextBox2.addFocusListener(new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                if (ClientSearchTextBox2.getText().equals("Search by Client Name")) {
+                    ClientSearchTextBox2.setText("");
+                    ClientSearchTextBox2.setForeground(Color.BLACK);
+                }
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                if (ClientSearchTextBox2.getText().isEmpty()) {
+                    ClientSearchTextBox2.setForeground(Color.GRAY);
+                    ClientSearchTextBox2.setText("Search by Client Name");
+                }
+                fetchRows();
+            }
+        });
+
         jTable1.getModel().addTableModelListener((TableModelEvent e) -> {
             int row = e.getFirstRow();
             int column = e.getColumn();
@@ -63,27 +83,38 @@ public class OrderTableView extends javax.swing.JPanel {
     }
 
     private void fetchRows() {
-
         try {
             Connection connection = DBConnection.getConnection();
 
-            String sql = "SELECT ID,CLIENT_ID,PRODUCT_ID,QUANTITY,CREATED_AT,DELIVERED_AT FROM ORDERS";
+            String sql = "SELECT o.ID, c.name AS CLIENT_NAME, p.name AS PRODUCT_NAME, o.QUANTITY, o.CREATED_AT, o.DELIVERED_AT "
+                    + "FROM ORDERS o "
+                    + "JOIN Client c ON o.CLIENT_ID = c.ID "
+                    + "JOIN Product p ON o.PRODUCT_ID = p.ID ";
+
+            List<String> conditions = new ArrayList<>();
             if (!ProductSearchTextBox1.getText().equals("Search by Product Name")) {
-                sql += " WHERE lower(name) LIKE ?";
+                conditions.add("lower(p.name) LIKE ?");
             }
-            
-            if(!ClientSearchTextBox2.getText().equals("Search by Client Name")) {
-                sql += " WHERE lower(name) LIKE ?";
+
+            if (!ClientSearchTextBox2.getText().equals("Search by Client Name")) {
+                conditions.add("lower(c.name) LIKE ?");
             }
+
+            if (!conditions.isEmpty()) {
+                sql += "WHERE " + String.join(" AND ", conditions);
+            }
+
             PreparedStatement statement = connection.prepareStatement(sql);
 
+            int paramIndex = 1;
             if (!ProductSearchTextBox1.getText().equals("Search by Product Name")) {
-                statement.setString(1, "%" + ProductSearchTextBox1.getText().toLowerCase() + "%");
+                statement.setString(paramIndex++, "%" + ProductSearchTextBox1.getText().toLowerCase() + "%");
             }
-            
-            if(!ClientSearchTextBox2.getText().equals("Search by Client Name")) {
-                statement.setString(2, "%" + ClientSearchTextBox2.getText().toLowerCase() + "%");
+
+            if (!ClientSearchTextBox2.getText().equals("Search by Client Name")) {
+                statement.setString(paramIndex++, "%" + ClientSearchTextBox2.getText().toLowerCase() + "%");
             }
+
             ResultSet resultSet = statement.executeQuery();
 
             int columnCount = resultSet.getMetaData().getColumnCount();
@@ -111,35 +142,35 @@ public class OrderTableView extends javax.swing.JPanel {
         } catch (SQLException ex) {
             Logger.getLogger(ClientsTableView.class.getName()).log(Level.SEVERE, null, ex);
         }
-
     }
 
     private void updateRow(Object[] updatedModel) {
-//        try {
-//            // Establish connection to the database
-//            Connection connection = DBConnection.getConnection();
-//
-//            // Prepare the SQL statement to update the row
-//            String sql = "UPDATE PRODUCT SET NAME = ?, PRICE = ?, QUANTITY = ? WHERE ID = ?";
-//            PreparedStatement statement = connection.prepareStatement(sql);
+        try {
+            // Establish connection to the database
+            Connection connection = DBConnection.getConnection();
+
+            // Prepare the SQL statement to update the row
+            String sql = "UPDATE ORDER SET CLIENT_ID = ?, PRODUCT_ID = ?, QUANTITY = ?, CREATED_AT = ?, DELIVERED_AT = ?, WHERE ID = ?";
+            PreparedStatement statement = connection.prepareStatement(sql);
 //            statement.setString(1, (String) updatedModel[1]);
 //            statement.setDouble(2, Double.parseDouble((String) updatedModel[2]));
 //            statement.setInt(3, Integer.parseInt((String) updatedModel[3]));
 //            statement.setInt(4, Integer.parseInt((String) updatedModel[0]));
-//
-//            // Execute the update statement
-//            int rowsAffected = statement.executeUpdate();
-//
-//            // Check if the update was successful
-//            if (rowsAffected > 0) {
-//                System.out.println("Row updated successfully in the database.");
-//            } else {
-//                System.out.println("Failed to update row in the database.");
-//            }
-//        } catch (SQLException ex) {
-//            ex.printStackTrace();
-//        }
+
+            // Execute the update statement
+            int rowsAffected = statement.executeUpdate();
+
+            // Check if the update was successful
+            if (rowsAffected > 0) {
+                System.out.println("Row updated successfully in the database.");
+            } else {
+                System.out.println("Failed to update row in the database.");
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
     }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -150,6 +181,14 @@ public class OrderTableView extends javax.swing.JPanel {
     private void initComponents() {
 
         jDialog1 = new javax.swing.JDialog();
+        label1 = new java.awt.Label();
+        label2 = new java.awt.Label();
+        label3 = new java.awt.Label();
+        jButton4 = new javax.swing.JButton();
+        jComboBox1 = new javax.swing.JComboBox<>();
+        label4 = new java.awt.Label();
+        jComboBox2 = new javax.swing.JComboBox<>();
+        jComboBox3 = new javax.swing.JComboBox<>();
         jLabel1 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
@@ -159,15 +198,82 @@ public class OrderTableView extends javax.swing.JPanel {
         ProductSearchTextBox1 = new javax.swing.JTextField();
         ClientSearchTextBox2 = new javax.swing.JTextField();
 
+        jDialog1.setMinimumSize(new java.awt.Dimension(400, 300));
+
+        label1.setFont(new java.awt.Font("Tahoma", 3, 24)); // NOI18N
+        label1.setText("Add Order");
+
+        label2.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        label2.setText("Client");
+
+        label3.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        label3.setText("Product");
+
+        jButton4.setText("Add Order");
+        jButton4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton4ActionPerformed(evt);
+            }
+        });
+
+        jComboBox1.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+
+        label4.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        label4.setText("Quantity");
+
+        jComboBox2.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+
+        jComboBox3.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+
         javax.swing.GroupLayout jDialog1Layout = new javax.swing.GroupLayout(jDialog1.getContentPane());
         jDialog1.getContentPane().setLayout(jDialog1Layout);
         jDialog1Layout.setHorizontalGroup(
             jDialog1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
+            .addGroup(jDialog1Layout.createSequentialGroup()
+                .addGroup(jDialog1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jDialog1Layout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(jButton4))
+                    .addGroup(jDialog1Layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addGroup(jDialog1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(label1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(jDialog1Layout.createSequentialGroup()
+                                .addGap(10, 10, 10)
+                                .addGroup(jDialog1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(label4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(label3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(label2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(jDialog1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                    .addComponent(jComboBox3, javax.swing.GroupLayout.Alignment.LEADING, 0, 87, Short.MAX_VALUE)
+                                    .addComponent(jComboBox2, javax.swing.GroupLayout.Alignment.LEADING, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(jComboBox1, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                        .addGap(0, 202, Short.MAX_VALUE)))
+                .addContainerGap())
         );
         jDialog1Layout.setVerticalGroup(
             jDialog1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
+            .addGroup(jDialog1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(label1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jDialog1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(label2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(10, 10, 10)
+                .addGroup(jDialog1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addGroup(jDialog1Layout.createSequentialGroup()
+                        .addComponent(label3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(16, 16, 16)
+                        .addComponent(label4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jDialog1Layout.createSequentialGroup()
+                        .addComponent(jComboBox2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jComboBox3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 32, Short.MAX_VALUE)
+                .addComponent(jButton4)
+                .addContainerGap())
         );
 
         setPreferredSize(new java.awt.Dimension(548, 387));
@@ -282,7 +388,7 @@ public class OrderTableView extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-         try {
+        try {
 
             int selectedRowIndex = jTable1.getSelectedRow();
 
@@ -324,16 +430,26 @@ public class OrderTableView extends javax.swing.JPanel {
     }//GEN-LAST:event_ProductSearchTextBox1ActionPerformed
 
     private void ClientSearchTextBox2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ClientSearchTextBox2ActionPerformed
-        // TODO add your handling code here:
+
     }//GEN-LAST:event_ClientSearchTextBox2ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-       // ADD
+        this.jDialog1.setLocationRelativeTo(this);
+        this.jDialog1.setVisible(true);
+        this.label1.setText("Add Order");
+        this.jButton4.setText("Add Order");
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        //EDIT
+        this.jDialog1.setLocationRelativeTo(this);
+        this.jDialog1.setVisible(true);
+        this.label1.setText("Edit Order");
+        this.jButton4.setText("Edit Order");
     }//GEN-LAST:event_jButton3ActionPerformed
+
+    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
+//        updateRow();
+    }//GEN-LAST:event_jButton4ActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -342,9 +458,17 @@ public class OrderTableView extends javax.swing.JPanel {
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
+    private javax.swing.JButton jButton4;
+    private javax.swing.JComboBox<String> jComboBox1;
+    private javax.swing.JComboBox<String> jComboBox2;
+    private javax.swing.JComboBox<String> jComboBox3;
     private javax.swing.JDialog jDialog1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTable jTable1;
+    private java.awt.Label label1;
+    private java.awt.Label label2;
+    private java.awt.Label label3;
+    private java.awt.Label label4;
     // End of variables declaration//GEN-END:variables
 }
