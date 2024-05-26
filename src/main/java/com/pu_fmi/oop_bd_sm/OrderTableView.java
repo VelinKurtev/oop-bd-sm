@@ -86,17 +86,19 @@ public class OrderTableView extends javax.swing.JPanel {
         try {
             Connection connection = DBConnection.getConnection();
 
+            boolean haveProduct = !ProductSearchTextBox1.getText().equals("Search by Product Name");
+            boolean haveClient = !ClientSearchTextBox2.getText().equals("Search by Client Name");
+
             String sql = "SELECT o.ID, c.name AS CLIENT_NAME, p.name AS PRODUCT_NAME, o.QUANTITY, o.CREATED_AT, o.DELIVERED_AT "
                     + "FROM ORDERS o "
                     + "JOIN Client c ON o.CLIENT_ID = c.ID "
                     + "JOIN Product p ON o.PRODUCT_ID = p.ID ";
 
             List<String> conditions = new ArrayList<>();
-            if (!ProductSearchTextBox1.getText().equals("Search by Product Name")) {
+            if (haveProduct) {
                 conditions.add("lower(p.name) LIKE ?");
             }
-
-            if (!ClientSearchTextBox2.getText().equals("Search by Client Name")) {
+            if (haveClient) {
                 conditions.add("lower(c.name) LIKE ?");
             }
 
@@ -107,11 +109,10 @@ public class OrderTableView extends javax.swing.JPanel {
             PreparedStatement statement = connection.prepareStatement(sql);
 
             int paramIndex = 1;
-            if (!ProductSearchTextBox1.getText().equals("Search by Product Name")) {
+            if (haveProduct) {
                 statement.setString(paramIndex++, "%" + ProductSearchTextBox1.getText().toLowerCase() + "%");
             }
-
-            if (!ClientSearchTextBox2.getText().equals("Search by Client Name")) {
+            if (haveClient) {
                 statement.setString(paramIndex++, "%" + ClientSearchTextBox2.getText().toLowerCase() + "%");
             }
 
@@ -136,38 +137,22 @@ public class OrderTableView extends javax.swing.JPanel {
                 dataArray[i] = results.get(i);
             }
 
-            jTable1.setModel(new javax.swing.table.DefaultTableModel(dataArray, new String[]{"ID", "Client Name", "Product Name", "Quantity", "Created At", "Delivered At"}));
+            jTable1.setModel(new javax.swing.table.DefaultTableModel(
+                    dataArray,
+                    new String[]{"ID", "Client Name", "Product Name", "Quantity", "Created At", "Delivered At"}) {
+                boolean[] canEdit = new boolean[]{
+                    false, false, false, false, false, false
+                };
+
+                @Override
+                public boolean isCellEditable(int rowIndex, int columnIndex) {
+                    return canEdit[columnIndex];
+                }
+            });
             jTable1.removeColumn(jTable1.getColumnModel().getColumn(0));
 
         } catch (SQLException ex) {
             Logger.getLogger(ClientsTableView.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    private void updateRow(Object[] updatedModel) {
-        try {
-            // Establish connection to the database
-            Connection connection = DBConnection.getConnection();
-
-            // Prepare the SQL statement to update the row
-            String sql = "UPDATE ORDER SET CLIENT_ID = ?, PRODUCT_ID = ?, QUANTITY = ?, CREATED_AT = ?, DELIVERED_AT = ?, WHERE ID = ?";
-            PreparedStatement statement = connection.prepareStatement(sql);
-//            statement.setString(1, (String) updatedModel[1]);
-//            statement.setDouble(2, Double.parseDouble((String) updatedModel[2]));
-//            statement.setInt(3, Integer.parseInt((String) updatedModel[3]));
-//            statement.setInt(4, Integer.parseInt((String) updatedModel[0]));
-
-            // Execute the update statement
-            int rowsAffected = statement.executeUpdate();
-
-            // Check if the update was successful
-            if (rowsAffected > 0) {
-                System.out.println("Row updated successfully in the database.");
-            } else {
-                System.out.println("Failed to update row in the database.");
-            }
-        } catch (SQLException ex) {
-            ex.printStackTrace();
         }
     }
 
@@ -451,11 +436,11 @@ public class OrderTableView extends javax.swing.JPanel {
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void ProductSearchTextBox1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ProductSearchTextBox1ActionPerformed
-
+        fetchRows();
     }//GEN-LAST:event_ProductSearchTextBox1ActionPerformed
 
     private void ClientSearchTextBox2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ClientSearchTextBox2ActionPerformed
-
+        fetchRows();
     }//GEN-LAST:event_ClientSearchTextBox2ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
@@ -463,9 +448,9 @@ public class OrderTableView extends javax.swing.JPanel {
         this.jDialog1.setVisible(true);
         this.label1.setText("Add Order");
         this.jButton4.setText("Add Order");
-        
+
         //populate things
-        
+
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
