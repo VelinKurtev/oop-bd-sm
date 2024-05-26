@@ -8,6 +8,8 @@ import com.pu_fmi.oop_bd_sm.Entities.DBConnection;
 import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 /**
  *
@@ -20,12 +22,22 @@ public class MainWindow extends javax.swing.JFrame {
      */
     public MainWindow() {
         initComponents();
+        ProductsCustomerGraph graphPanel = new ProductsCustomerGraph();
+        
         jTabbedPane1.addTab("Clients",new ClientsTableView());
         jTabbedPane1.addTab("Products",new ProductTableView());
         jTabbedPane1.addTab("Orders",new OrderTableView());
-        jTabbedPane1.addTab("Graph",new ProductsCustomerGraph());
-
-
+        jTabbedPane1.addTab("Graph",graphPanel);
+        
+        jTabbedPane1.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                
+                if (jTabbedPane1.getSelectedComponent() instanceof ProductsCustomerGraph) {
+                    graphPanel.drawChart();
+                }
+            }
+        });
     }
 
     /**

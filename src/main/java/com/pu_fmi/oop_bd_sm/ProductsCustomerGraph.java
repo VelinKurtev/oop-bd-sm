@@ -111,7 +111,7 @@ public class ProductsCustomerGraph extends javax.swing.JPanel {
     }
     int zsofar = 0;
 
-    void drawChart() {
+    public void drawChart() {
         if (chartPan != null) {
             chartPan.removeAll();
             

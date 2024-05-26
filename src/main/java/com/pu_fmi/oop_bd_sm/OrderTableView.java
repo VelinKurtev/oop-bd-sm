@@ -151,7 +151,11 @@ public class OrderTableView extends javax.swing.JPanel {
         }
     }
 
-    private void populateClientNames() {
+    private boolean populateClientNames() {
+        if (clientNameToIdMap.size() < 1) {
+            JOptionPane.showMessageDialog(this, "You need at least one Client and Product", "Not Enough Data", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
         try {
             Connection connection = DBConnection.getConnection();
             String sql = "SELECT id, name FROM Client";
@@ -167,9 +171,14 @@ public class OrderTableView extends javax.swing.JPanel {
         } catch (SQLException ex) {
             Logger.getLogger(OrderTableView.class.getName()).log(Level.SEVERE, null, ex);
         }
+        return true;
     }
 
-    private void populateProductNames() {
+    private boolean populateProductNames() {
+        if (productNameToIdMap.size() < 1) {
+            JOptionPane.showMessageDialog(this, "You need at least one Client and Product", "Not Enough Data", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
         try {
             Connection connection = DBConnection.getConnection();
             String sql = "SELECT id, name FROM PRODUCT";
@@ -182,9 +191,11 @@ public class OrderTableView extends javax.swing.JPanel {
                 productNameToIdMap.put(name, id);
                 jComboBox2.addItem(name);
             }
+
         } catch (SQLException ex) {
             Logger.getLogger(OrderTableView.class.getName()).log(Level.SEVERE, null, ex);
         }
+        return true;
     }
 
     private int fetchProductQuantity(String productName) {
@@ -268,6 +279,8 @@ public class OrderTableView extends javax.swing.JPanel {
 
         jComboBox3.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
 
+        jCalendar2.setPreferredSize(new java.awt.Dimension(214, 171));
+
         label5.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
         label5.setText("Created At");
 
@@ -334,7 +347,7 @@ public class OrderTableView extends javax.swing.JPanel {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jDialog1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(label6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jCalendar2, javax.swing.GroupLayout.PREFERRED_SIZE, 163, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jCalendar2, javax.swing.GroupLayout.PREFERRED_SIZE, 186, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jButton4)
                 .addContainerGap())
@@ -493,22 +506,19 @@ public class OrderTableView extends javax.swing.JPanel {
     }//GEN-LAST:event_ClientSearchTextBox2ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        this.jDialog1.setLocationRelativeTo(this);
-        this.jDialog1.setVisible(true);
-        this.label1.setText("Add Order");
-        this.jButton4.setText("Add Order");
-
         this.jComboBox1.removeAllItems();
         this.jComboBox2.removeAllItems();
         this.jComboBox3.removeAllItems();
 
-        populateClientNames();
-        populateProductNames();
-
-        jComboBox2.addActionListener((java.awt.event.ActionEvent evt1) -> {
-            jComboBox2ActionPerformed(evt1);
-        });
-
+        if (populateProductNames() && populateClientNames()) {
+            this.jDialog1.setLocationRelativeTo(this);
+            this.jDialog1.setVisible(true);
+            this.label1.setText("Add Order");
+            this.jButton4.setText("Add Order");
+            jComboBox2.addActionListener((java.awt.event.ActionEvent evt1) -> {
+                jComboBox2ActionPerformed(evt1);
+            });
+        }
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
@@ -533,6 +543,16 @@ public class OrderTableView extends javax.swing.JPanel {
             int clientId = clientNameToIdMap.get(selectedClientName);
             int productId = productNameToIdMap.get(selectedProductName);
 
+            if (createdAt.after(deliveredAt)) {
+                JOptionPane.showMessageDialog(this, "The 'Created At' date must be before the 'Delivered At' date.", "Date Validation Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            if (deliveredAt.before(createdAt)) {
+                JOptionPane.showMessageDialog(this, "The 'Delivered At'  date must be after the 'Created At' date.", "Date Validation Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
             statement.setInt(1, clientId);
             statement.setInt(2, productId);
             statement.setInt(3, quantity);
@@ -540,7 +560,7 @@ public class OrderTableView extends javax.swing.JPanel {
             statement.setDate(5, new java.sql.Date(deliveredAt.getTime()));
 
             statement.executeUpdate();
-            
+
             fetchRows();
             this.jDialog1.setVisible(false);
         } catch (SQLException ex) {

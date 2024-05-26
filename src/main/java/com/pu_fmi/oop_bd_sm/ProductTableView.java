@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.event.TableModelEvent;
 import javax.swing.table.DefaultTableModel;
 
@@ -61,7 +62,7 @@ public class ProductTableView extends javax.swing.JPanel {
             }
         });
     }
-
+    
     private void fetchRows() {
 
         try {
@@ -203,6 +204,10 @@ public class ProductTableView extends javax.swing.JPanel {
         jLabel3.setText("Price");
 
         jLabel4.setText("Quantity");
+
+        jSpinner1.setModel(new javax.swing.SpinnerNumberModel(0.0f, 0.0f, null, 1.0f));
+
+        jSpinner2.setModel(new javax.swing.SpinnerNumberModel(0, 0, null, 1));
 
         ProductSearchTextBox1.setText("Search by Name");
         ProductSearchTextBox1.setCursor(new java.awt.Cursor(java.awt.Cursor.TEXT_CURSOR));
