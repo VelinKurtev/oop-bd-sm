@@ -77,7 +77,6 @@ public class OrderTableView extends javax.swing.JPanel {
             if (row >= 0 && column >= 0) {
                 DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
                 Object[] updatedModel = {model.getValueAt(row, 0), model.getValueAt(row, 1), model.getValueAt(row, 2), model.getValueAt(row, 3)};
-                updateRow(updatedModel);
             }
         });
     }
@@ -156,6 +155,58 @@ public class OrderTableView extends javax.swing.JPanel {
         }
     }
 
+    private List<String> fetchClientNames() {
+        List<String> clientNames = new ArrayList<>();
+        try {
+            Connection connection = DBConnection.getConnection();
+            String sql = "SELECT name FROM Client";
+            PreparedStatement statement = connection.prepareStatement(sql);
+            ResultSet resultSet = statement.executeQuery();
+
+            while (resultSet.next()) {
+                clientNames.add(resultSet.getString("name"));
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(OrderTableView.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return clientNames;
+    }
+
+    private List<String> fetchProductNames() {
+        List<String> productNames = new ArrayList<>();
+        try {
+            Connection connection = DBConnection.getConnection();
+            String sql = "SELECT name FROM PRODUCT";
+            PreparedStatement statement = connection.prepareStatement(sql);
+            ResultSet resultSet = statement.executeQuery();
+
+            while (resultSet.next()) {
+                productNames.add(resultSet.getString("name"));
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(OrderTableView.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return productNames;
+    }
+
+    private int fetchProductQuantity(String productName) {
+        int quantity = 0;
+        try {
+            Connection connection = DBConnection.getConnection();
+            String sql = "SELECT quantity FROM Product WHERE name = ?";
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setString(1, productName);
+            ResultSet resultSet = statement.executeQuery();
+
+            if (resultSet.next()) {
+                quantity = resultSet.getInt("quantity");
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(OrderTableView.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return quantity;
+    }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -187,7 +238,7 @@ public class OrderTableView extends javax.swing.JPanel {
         ProductSearchTextBox1 = new javax.swing.JTextField();
         ClientSearchTextBox2 = new javax.swing.JTextField();
 
-        jDialog1.setMinimumSize(new java.awt.Dimension(530, 730));
+        jDialog1.setMinimumSize(new java.awt.Dimension(590, 730));
 
         label1.setFont(new java.awt.Font("Tahoma", 3, 24)); // NOI18N
         label1.setText("Add Order");
@@ -211,14 +262,19 @@ public class OrderTableView extends javax.swing.JPanel {
         label4.setText("Quantity");
 
         jComboBox2.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        jComboBox2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jComboBox2ActionPerformed(evt);
+            }
+        });
 
         jComboBox3.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
 
         label5.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
-        label5.setText("Quantity");
+        label5.setText("Created At");
 
         label6.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
-        label6.setText("Quantity");
+        label6.setText("Delivered at");
 
         javax.swing.GroupLayout jDialog1Layout = new javax.swing.GroupLayout(jDialog1.getContentPane());
         jDialog1.getContentPane().setLayout(jDialog1Layout);
@@ -245,12 +301,12 @@ public class OrderTableView extends javax.swing.JPanel {
                         .addComponent(jButton4))
                     .addGroup(jDialog1Layout.createSequentialGroup()
                         .addGap(10, 10, 10)
-                        .addGroup(jDialog1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                        .addGroup(jDialog1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(label5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(label6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jDialog1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jCalendar1, javax.swing.GroupLayout.DEFAULT_SIZE, 310, Short.MAX_VALUE)
+                            .addComponent(jCalendar1, javax.swing.GroupLayout.DEFAULT_SIZE, 284, Short.MAX_VALUE)
                             .addComponent(jCalendar2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
                 .addContainerGap())
         );
@@ -449,7 +505,26 @@ public class OrderTableView extends javax.swing.JPanel {
         this.label1.setText("Add Order");
         this.jButton4.setText("Add Order");
 
-        //populate things
+        List<String> clientNames = fetchClientNames();
+        List<String> productNames = fetchProductNames();
+
+        this.jComboBox1.removeAllItems();
+        this.jComboBox2.removeAllItems();        
+        this.jComboBox3.removeAllItems();
+
+        clientNames.forEach(name -> {
+            this.jComboBox1.addItem(name);
+        });
+
+        productNames.forEach(name -> {
+            this.jComboBox2.addItem(name);
+        });
+        
+        jComboBox2.addActionListener(new java.awt.event.ActionListener() {
+        public void actionPerformed(java.awt.event.ActionEvent evt) {
+            jComboBox2ActionPerformed(evt);
+        }
+    });
 
     }//GEN-LAST:event_jButton2ActionPerformed
 
@@ -463,6 +538,15 @@ public class OrderTableView extends javax.swing.JPanel {
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
 //        updateRow();
     }//GEN-LAST:event_jButton4ActionPerformed
+
+    private void jComboBox2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBox2ActionPerformed
+        String selectedProduct = (String) jComboBox2.getSelectedItem();
+        int quantity = fetchProductQuantity(selectedProduct);
+        jComboBox3.removeAllItems();
+        for(int i = 1; i <= quantity; i++) {
+            this.jComboBox3.addItem(Integer.toString(i));
+        };
+    }//GEN-LAST:event_jComboBox2ActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
