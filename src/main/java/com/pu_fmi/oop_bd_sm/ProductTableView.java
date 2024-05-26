@@ -61,6 +61,10 @@ public class ProductTableView extends javax.swing.JPanel {
                 updateRow(updatedModel);
             }
         });
+        
+        
+        SpinnerNumberModel model = new SpinnerNumberModel(0.0, 0.0, 10.0, 0.1);
+        this.jSpinner1.setModel(model);
     }
     
     private void fetchRows() {
