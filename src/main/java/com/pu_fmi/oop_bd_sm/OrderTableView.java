@@ -9,15 +9,17 @@ import java.awt.Color;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
-import javax.swing.event.TableModelEvent;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -29,6 +31,9 @@ public class OrderTableView extends javax.swing.JPanel {
     /**
      * Creates new form OrderTableView
      */
+    private Map<String, Integer> clientNameToIdMap = new HashMap<>();
+    private Map<String, Integer> productNameToIdMap = new HashMap<>();
+
     public OrderTableView() {
         initComponents();
         fetchRows();
@@ -68,15 +73,6 @@ public class OrderTableView extends javax.swing.JPanel {
                     ClientSearchTextBox2.setText("Search by Client Name");
                 }
                 fetchRows();
-            }
-        });
-
-        jTable1.getModel().addTableModelListener((TableModelEvent e) -> {
-            int row = e.getFirstRow();
-            int column = e.getColumn();
-            if (row >= 0 && column >= 0) {
-                DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
-                Object[] updatedModel = {model.getValueAt(row, 0), model.getValueAt(row, 1), model.getValueAt(row, 2), model.getValueAt(row, 3)};
             }
         });
     }
@@ -155,38 +151,40 @@ public class OrderTableView extends javax.swing.JPanel {
         }
     }
 
-    private List<String> fetchClientNames() {
-        List<String> clientNames = new ArrayList<>();
+    private void populateClientNames() {
         try {
             Connection connection = DBConnection.getConnection();
-            String sql = "SELECT name FROM Client";
+            String sql = "SELECT id, name FROM Client";
             PreparedStatement statement = connection.prepareStatement(sql);
             ResultSet resultSet = statement.executeQuery();
 
             while (resultSet.next()) {
-                clientNames.add(resultSet.getString("name"));
+                int id = resultSet.getInt("id");
+                String name = resultSet.getString("name");
+                clientNameToIdMap.put(name, id);
+                jComboBox1.addItem(name);
             }
         } catch (SQLException ex) {
             Logger.getLogger(OrderTableView.class.getName()).log(Level.SEVERE, null, ex);
         }
-        return clientNames;
     }
 
-    private List<String> fetchProductNames() {
-        List<String> productNames = new ArrayList<>();
+    private void populateProductNames() {
         try {
             Connection connection = DBConnection.getConnection();
-            String sql = "SELECT name FROM PRODUCT";
+            String sql = "SELECT id, name FROM PRODUCT";
             PreparedStatement statement = connection.prepareStatement(sql);
             ResultSet resultSet = statement.executeQuery();
 
             while (resultSet.next()) {
-                productNames.add(resultSet.getString("name"));
+                int id = resultSet.getInt("id");
+                String name = resultSet.getString("name");
+                productNameToIdMap.put(name, id);
+                jComboBox2.addItem(name);
             }
         } catch (SQLException ex) {
             Logger.getLogger(OrderTableView.class.getName()).log(Level.SEVERE, null, ex);
         }
-        return productNames;
     }
 
     private int fetchProductQuantity(String productName) {
@@ -458,7 +456,6 @@ public class OrderTableView extends javax.swing.JPanel {
 
             int selectedRowIndex = jTable1.getSelectedRow();
 
-            // Check if a row is selected
             if (selectedRowIndex == -1) {
                 JOptionPane.showMessageDialog(this, "Please select a row to delete.", "No Row Selected", JOptionPane.WARNING_MESSAGE);
                 return;
@@ -481,13 +478,9 @@ public class OrderTableView extends javax.swing.JPanel {
             model.removeRow(selectedRowIndex);
         } catch (SQLException ex) {
             System.out.println("sql error");
-
-            ex.printStackTrace();
             JOptionPane.showMessageDialog(null, "Error occured, try again");
         } catch (Exception ex) {
             System.out.println("generic error");
-            ex.printStackTrace();
-
         }
     }//GEN-LAST:event_jButton1ActionPerformed
 
@@ -505,26 +498,16 @@ public class OrderTableView extends javax.swing.JPanel {
         this.label1.setText("Add Order");
         this.jButton4.setText("Add Order");
 
-        List<String> clientNames = fetchClientNames();
-        List<String> productNames = fetchProductNames();
-
         this.jComboBox1.removeAllItems();
-        this.jComboBox2.removeAllItems();        
+        this.jComboBox2.removeAllItems();
         this.jComboBox3.removeAllItems();
 
-        clientNames.forEach(name -> {
-            this.jComboBox1.addItem(name);
-        });
+        populateClientNames();
+        populateProductNames();
 
-        productNames.forEach(name -> {
-            this.jComboBox2.addItem(name);
+        jComboBox2.addActionListener((java.awt.event.ActionEvent evt1) -> {
+            jComboBox2ActionPerformed(evt1);
         });
-        
-        jComboBox2.addActionListener(new java.awt.event.ActionListener() {
-        public void actionPerformed(java.awt.event.ActionEvent evt) {
-            jComboBox2ActionPerformed(evt);
-        }
-    });
 
     }//GEN-LAST:event_jButton2ActionPerformed
 
@@ -536,16 +519,42 @@ public class OrderTableView extends javax.swing.JPanel {
     }//GEN-LAST:event_jButton3ActionPerformed
 
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
-//        updateRow();
+        try {
+            Connection connection = DBConnection.getConnection();
+            String sql = "INSERT INTO ORDERS (CLIENT_ID, PRODUCT_ID, QUANTITY, CREATED_AT, DELIVERED_AT) VALUES (?, ?, ?, ?, ?)";
+            PreparedStatement statement = connection.prepareStatement(sql);
+
+            String selectedClientName = (String) jComboBox1.getSelectedItem();
+            String selectedProductName = (String) jComboBox2.getSelectedItem();
+            int quantity = Integer.parseInt(jComboBox3.getSelectedItem().toString());
+            Date createdAt = new Date(jCalendar1.getDate().getTime());
+            Date deliveredAt = new Date(jCalendar2.getDate().getTime());
+
+            int clientId = clientNameToIdMap.get(selectedClientName);
+            int productId = productNameToIdMap.get(selectedProductName);
+
+            statement.setInt(1, clientId);
+            statement.setInt(2, productId);
+            statement.setInt(3, quantity);
+            statement.setDate(4, new java.sql.Date(createdAt.getTime()));
+            statement.setDate(5, new java.sql.Date(deliveredAt.getTime()));
+
+            statement.executeUpdate();
+            
+            fetchRows();
+            this.jDialog1.setVisible(false);
+        } catch (SQLException ex) {
+            Logger.getLogger(OrderTableView.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }//GEN-LAST:event_jButton4ActionPerformed
 
     private void jComboBox2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBox2ActionPerformed
         String selectedProduct = (String) jComboBox2.getSelectedItem();
         int quantity = fetchProductQuantity(selectedProduct);
         jComboBox3.removeAllItems();
-        for(int i = 1; i <= quantity; i++) {
+        for (int i = 1; i <= quantity; i++) {
             this.jComboBox3.addItem(Integer.toString(i));
-        };
+        }
     }//GEN-LAST:event_jComboBox2ActionPerformed
 
 
