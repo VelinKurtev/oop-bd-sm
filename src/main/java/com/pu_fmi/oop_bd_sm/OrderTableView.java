@@ -189,6 +189,10 @@ public class OrderTableView extends javax.swing.JPanel {
         label4 = new java.awt.Label();
         jComboBox2 = new javax.swing.JComboBox<>();
         jComboBox3 = new javax.swing.JComboBox<>();
+        jCalendar1 = new com.toedter.calendar.JCalendar();
+        jCalendar2 = new com.toedter.calendar.JCalendar();
+        label5 = new java.awt.Label();
+        label6 = new java.awt.Label();
         jLabel1 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
@@ -198,7 +202,7 @@ public class OrderTableView extends javax.swing.JPanel {
         ProductSearchTextBox1 = new javax.swing.JTextField();
         ClientSearchTextBox2 = new javax.swing.JTextField();
 
-        jDialog1.setMinimumSize(new java.awt.Dimension(400, 300));
+        jDialog1.setMinimumSize(new java.awt.Dimension(530, 730));
 
         label1.setFont(new java.awt.Font("Tahoma", 3, 24)); // NOI18N
         label1.setText("Add Order");
@@ -225,17 +229,20 @@ public class OrderTableView extends javax.swing.JPanel {
 
         jComboBox3.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
 
+        label5.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        label5.setText("Quantity");
+
+        label6.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        label6.setText("Quantity");
+
         javax.swing.GroupLayout jDialog1Layout = new javax.swing.GroupLayout(jDialog1.getContentPane());
         jDialog1.getContentPane().setLayout(jDialog1Layout);
         jDialog1Layout.setHorizontalGroup(
             jDialog1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jDialog1Layout.createSequentialGroup()
+                .addContainerGap()
                 .addGroup(jDialog1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jDialog1Layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(jButton4))
                     .addGroup(jDialog1Layout.createSequentialGroup()
-                        .addContainerGap()
                         .addGroup(jDialog1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(label1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addGroup(jDialog1Layout.createSequentialGroup()
@@ -249,7 +256,17 @@ public class OrderTableView extends javax.swing.JPanel {
                                     .addComponent(jComboBox3, javax.swing.GroupLayout.Alignment.LEADING, 0, 87, Short.MAX_VALUE)
                                     .addComponent(jComboBox2, javax.swing.GroupLayout.Alignment.LEADING, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                     .addComponent(jComboBox1, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
-                        .addGap(0, 202, Short.MAX_VALUE)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jButton4))
+                    .addGroup(jDialog1Layout.createSequentialGroup()
+                        .addGap(10, 10, 10)
+                        .addGroup(jDialog1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(label5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(label6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jDialog1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jCalendar1, javax.swing.GroupLayout.DEFAULT_SIZE, 310, Short.MAX_VALUE)
+                            .addComponent(jCalendar2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
                 .addContainerGap())
         );
         jDialog1Layout.setVerticalGroup(
@@ -257,7 +274,7 @@ public class OrderTableView extends javax.swing.JPanel {
             .addGroup(jDialog1Layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(label1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGap(18, 18, 18)
                 .addGroup(jDialog1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(label2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -271,7 +288,15 @@ public class OrderTableView extends javax.swing.JPanel {
                         .addComponent(jComboBox2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jComboBox3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 32, Short.MAX_VALUE)
+                .addGap(18, 18, 18)
+                .addGroup(jDialog1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(label5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jCalendar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jDialog1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(label6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jCalendar2, javax.swing.GroupLayout.PREFERRED_SIZE, 163, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jButton4)
                 .addContainerGap())
         );
@@ -438,6 +463,9 @@ public class OrderTableView extends javax.swing.JPanel {
         this.jDialog1.setVisible(true);
         this.label1.setText("Add Order");
         this.jButton4.setText("Add Order");
+        
+        //populate things
+        
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
@@ -459,6 +487,8 @@ public class OrderTableView extends javax.swing.JPanel {
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;
+    private com.toedter.calendar.JCalendar jCalendar1;
+    private com.toedter.calendar.JCalendar jCalendar2;
     private javax.swing.JComboBox<String> jComboBox1;
     private javax.swing.JComboBox<String> jComboBox2;
     private javax.swing.JComboBox<String> jComboBox3;
@@ -470,5 +500,7 @@ public class OrderTableView extends javax.swing.JPanel {
     private java.awt.Label label2;
     private java.awt.Label label3;
     private java.awt.Label label4;
+    private java.awt.Label label5;
+    private java.awt.Label label6;
     // End of variables declaration//GEN-END:variables
 }
