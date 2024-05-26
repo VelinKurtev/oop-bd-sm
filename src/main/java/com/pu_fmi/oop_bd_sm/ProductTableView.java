@@ -51,6 +51,24 @@ public class ProductTableView extends javax.swing.JPanel {
                 fetchRows();
             }
         });
+        
+        this.nameToAddTField.addFocusListener(new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                if (nameToAddTField.getText().equals("Name")) {
+                    nameToAddTField.setText("");
+                    nameToAddTField.setForeground(Color.BLACK);
+                }
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                if (nameToAddTField.getText().isEmpty()) {
+                    nameToAddTField.setForeground(Color.GRAY);
+                    nameToAddTField.setText("Name");
+                }
+            }
+        });
 
         jTable1.getModel().addTableModelListener((TableModelEvent e) -> {
             int row = e.getFirstRow();
@@ -85,8 +103,7 @@ public class ProductTableView extends javax.swing.JPanel {
             ResultSet resultSet = statement.executeQuery();
 
             int columnCount = resultSet.getMetaData().getColumnCount();
-
-            // Use ArrayList to dynamically store the results
+            
             ArrayList<Object[]> results = new ArrayList<>();
 
             while (resultSet.next()) {
@@ -114,10 +131,8 @@ public class ProductTableView extends javax.swing.JPanel {
 
     private void updateRow(Object[] updatedModel) {
         try {
-            // Establish connection to the database
             Connection connection = DBConnection.getConnection();
-
-            // Prepare the SQL statement to update the row
+            
             String sql = "UPDATE PRODUCT SET NAME = ?, PRICE = ?, QUANTITY = ? WHERE ID = ?";
             PreparedStatement statement = connection.prepareStatement(sql);
             statement.setString(1, (String) updatedModel[1]);

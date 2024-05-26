@@ -53,26 +53,59 @@ public class ClientsTableView extends javax.swing.JPanel {
             }
 
         });
-
-        addressSearchBar.addFocusListener(new FocusListener() {
+        
+        this.nameToAddTField.addFocusListener(new FocusListener() {
             @Override
             public void focusGained(FocusEvent e) {
-                if (addressSearchBar.getText().equals("Search by Address")) {
-                    addressSearchBar.setText("");
-                    addressSearchBar.setForeground(Color.BLACK);
+                if (nameToAddTField.getText().equals("Name")) {
+                    nameToAddTField.setText("");
+                    nameToAddTField.setForeground(Color.BLACK);
                 }
             }
 
             @Override
             public void focusLost(FocusEvent e) {
-                if (addressSearchBar.getText().isEmpty()) {
-                    addressSearchBar.setForeground(Color.GRAY);
-                    addressSearchBar.setText("Search by Address");
+                if (nameToAddTField.getText().isEmpty()) {
+                    nameToAddTField.setForeground(Color.GRAY);
+                    nameToAddTField.setText("Name");
                 }
-                fetchRows();
+            }
+        });
 
+        this.addressToAddTField.addFocusListener(new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                if (addressToAddTField.getText().equals("Address")) {
+                    addressToAddTField.setText("");
+                    addressToAddTField.setForeground(Color.BLACK);
+                }
             }
 
+            @Override
+            public void focusLost(FocusEvent e) {
+                if (addressToAddTField.getText().isEmpty()) {
+                    addressToAddTField.setForeground(Color.GRAY);
+                    addressToAddTField.setText("Address");
+                }
+            }
+        });
+        
+        this.phoneToAddTField.addFocusListener(new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                if (phoneToAddTField.getText().equals("Phone")) {
+                    phoneToAddTField.setText("");
+                    phoneToAddTField.setForeground(Color.BLACK);
+                }
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                if (phoneToAddTField.getText().isEmpty()) {
+                    phoneToAddTField.setForeground(Color.GRAY);
+                    phoneToAddTField.setText("Phone");
+                }
+            }
         });
 
         jTable1.getModel().addTableModelListener((TableModelEvent e) -> {
