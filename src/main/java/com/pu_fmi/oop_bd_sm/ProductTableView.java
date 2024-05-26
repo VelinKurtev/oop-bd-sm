@@ -11,16 +11,16 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import javax.swing.JOptionPane;
 import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
+import org.h2.jdbc.JdbcSQLIntegrityConstraintViolationException;
 
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
-
 /**
  *
  * @author amtis
@@ -33,26 +33,26 @@ public class ProductTableView extends javax.swing.JPanel {
     public ProductTableView() {
         initComponents();
         fetchRows();
-        
-        ProductSearchTextBox.addFocusListener(new FocusListener() {
+
+        ProductSearchTextBox1.addFocusListener(new FocusListener() {
             @Override
             public void focusGained(FocusEvent e) {
-                if (ProductSearchTextBox.getText().equals("Search")) {
-                    ProductSearchTextBox.setText("");
-                    ProductSearchTextBox.setForeground(Color.BLACK);
+                if (ProductSearchTextBox1.getText().equals("Search by Name")) {
+                    ProductSearchTextBox1.setText("");
+                    ProductSearchTextBox1.setForeground(Color.BLACK);
                 }
             }
 
             @Override
             public void focusLost(FocusEvent e) {
-                if (ProductSearchTextBox.getText().isEmpty()) {
-                    ProductSearchTextBox.setForeground(Color.GRAY);
-                    ProductSearchTextBox.setText("Search");
+                if (ProductSearchTextBox1.getText().isEmpty()) {
+                    ProductSearchTextBox1.setForeground(Color.GRAY);
+                    ProductSearchTextBox1.setText("Search by Name");
                 }
                 fetchRows();
             }
         });
-        
+
         jTable1.getModel().addTableModelListener((TableModelEvent e) -> {
             int row = e.getFirstRow();
             int column = e.getColumn();
@@ -63,20 +63,20 @@ public class ProductTableView extends javax.swing.JPanel {
             }
         });
     }
-    
+
     private void fetchRows() {
 
         try {
             Connection connection = DBConnection.getConnection();
 
             String sql = "SELECT ID,NAME,PRICE,QUANTITY FROM PRODUCT";
-            if (!ProductSearchTextBox.getText().equals("Search")) {
+            if (!ProductSearchTextBox1.getText().equals("Search by Name")) {
                 sql += " WHERE lower(name) LIKE ?";
             }
             PreparedStatement statement = connection.prepareStatement(sql);
 
-            if (!ProductSearchTextBox.getText().equals("Search")) {
-                statement.setString(1, "%" + ProductSearchTextBox.getText().toLowerCase() + "%");
+            if (!ProductSearchTextBox1.getText().equals("Search by Name")) {
+                statement.setString(1, "%" + ProductSearchTextBox1.getText().toLowerCase() + "%");
             }
 
             ResultSet resultSet = statement.executeQuery();
@@ -100,16 +100,16 @@ public class ProductTableView extends javax.swing.JPanel {
                 dataArray[i] = results.get(i);
             }
 
-            jTable1.setModel(new javax.swing.table.DefaultTableModel(dataArray, new String[]{"ID","Name", "Price", "Quantity"}));
+            jTable1.setModel(new javax.swing.table.DefaultTableModel(dataArray, new String[]{"ID", "Name", "Price", "Quantity"}));
             jTable1.removeColumn(jTable1.getColumnModel().getColumn(0));
-          
+
         } catch (SQLException ex) {
             Logger.getLogger(ClientsTableView.class.getName()).log(Level.SEVERE, null, ex);
         }
 
     }
-    
-    private void updateRow(Object[] updatedModel){
+
+    private void updateRow(Object[] updatedModel) {
         try {
             // Establish connection to the database
             Connection connection = DBConnection.getConnection();
@@ -125,7 +125,6 @@ public class ProductTableView extends javax.swing.JPanel {
             // Execute the update statement
             int rowsAffected = statement.executeUpdate();
 
-
             // Check if the update was successful
             if (rowsAffected > 0) {
                 System.out.println("Row updated successfully in the database.");
@@ -136,7 +135,7 @@ public class ProductTableView extends javax.swing.JPanel {
             ex.printStackTrace();
         }
     }
-    
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -149,9 +148,17 @@ public class ProductTableView extends javax.swing.JPanel {
         jLabel1 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
-        ProductSearchTextBox = new javax.swing.JTextField();
         jButton1 = new javax.swing.JButton();
+        jLabel2 = new javax.swing.JLabel();
+        jButton2 = new javax.swing.JButton();
+        nameToAddTField = new javax.swing.JTextField();
+        jLabel3 = new javax.swing.JLabel();
+        jLabel4 = new javax.swing.JLabel();
+        jSpinner1 = new javax.swing.JSpinner();
+        jSpinner2 = new javax.swing.JSpinner();
+        ProductSearchTextBox1 = new javax.swing.JTextField();
 
+        jLabel1.setFont(new java.awt.Font("Tahoma", 3, 24)); // NOI18N
         jLabel1.setText("Products Information");
 
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
@@ -172,22 +179,38 @@ public class ProductTableView extends javax.swing.JPanel {
         });
         jScrollPane1.setViewportView(jTable1);
 
-        ProductSearchTextBox.setText("Search");
-        ProductSearchTextBox.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                ProductSearchTextBoxActionPerformed(evt);
-            }
-        });
-        ProductSearchTextBox.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyPressed(java.awt.event.KeyEvent evt) {
-                ProductSearchTextBoxKeyPressed(evt);
-            }
-        });
-
-        jButton1.setText("Delete");
+        jButton1.setText("Delete Selected");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton1ActionPerformed(evt);
+            }
+        });
+
+        jLabel2.setText("New Product");
+
+        jButton2.setText("Add");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
+
+        nameToAddTField.setText("Name");
+        nameToAddTField.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                nameToAddTFieldActionPerformed(evt);
+            }
+        });
+
+        jLabel3.setText("Price");
+
+        jLabel4.setText("Quantity");
+
+        ProductSearchTextBox1.setText("Search by Name");
+        ProductSearchTextBox1.setCursor(new java.awt.Cursor(java.awt.Cursor.TEXT_CURSOR));
+        ProductSearchTextBox1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                ProductSearchTextBox1ActionPerformed(evt);
             }
         });
 
@@ -195,56 +218,185 @@ public class ProductTableView extends javax.swing.JPanel {
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 521, Short.MAX_VALUE)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(ProductSearchTextBox, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jButton1)
+                .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 76, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(nameToAddTField, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jSpinner1, javax.swing.GroupLayout.PREFERRED_SIZE, 67, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 53, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jSpinner2, javax.swing.GroupLayout.PREFERRED_SIZE, 68, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 107, javax.swing.GroupLayout.PREFERRED_SIZE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(jButton1))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 302, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(ProductSearchTextBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 107, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(ProductSearchTextBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 224, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(12, 12, 12)
+                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(ProductSearchTextBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jButton1)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 224, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButton2)
+                    .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(nameToAddTField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel3)
+                    .addComponent(jLabel4)
+                    .addComponent(jSpinner1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jSpinner2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(27, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
-    private void ProductSearchTextBoxKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_ProductSearchTextBoxKeyPressed
-        
-    }//GEN-LAST:event_ProductSearchTextBoxKeyPressed
-
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        int selectedRowIndex = jTable1.getSelectedRow();
 
-        // Check if a row is selected
-        if (selectedRowIndex != -1) {
-            ((DefaultTableModel) jTable1.getModel()).removeRow(selectedRowIndex);
-        } else {
-            // If no row is selected, display a message to the user
-            JOptionPane.showMessageDialog(this, "Please select a row to delete.", "No Row Selected", JOptionPane.WARNING_MESSAGE);
+        try {
+
+            int selectedRowIndex = jTable1.getSelectedRow();
+
+            // Check if a row is selected
+            if (selectedRowIndex == -1) {
+                JOptionPane.showMessageDialog(this, "Please select a row to delete.", "No Row Selected", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            DefaultTableModel model = ((DefaultTableModel) jTable1.getModel());
+
+            String id = (String) model.getValueAt(selectedRowIndex, 0);
+
+            Connection connection = DBConnection.getConnection();
+
+            String sql = "DELETE FROM PRODUCT WHERE ID=?";
+
+            PreparedStatement statement = connection.prepareStatement(sql);
+
+            statement.setInt(1, Integer.valueOf(id));
+
+            statement.execute();
+
+            model.removeRow(selectedRowIndex);
+        } catch (SQLException ex) {
+            System.out.println("sql error");
+
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Error occured, try again");
+        } catch (Exception ex) {
+            System.out.println("generic error");
+            ex.printStackTrace();
+
         }
     }//GEN-LAST:event_jButton1ActionPerformed
 
-    private void ProductSearchTextBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ProductSearchTextBoxActionPerformed
-         fetchRows();
-    }//GEN-LAST:event_ProductSearchTextBoxActionPerformed
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        try {
+            // Validate and trim the name field
+            String name = nameToAddTField.getText().trim();
+            if (name.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Name cannot be empty", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            double price;
+            int quantity;
+
+            try {
+                // Parse price and quantity from spinners
+                price = Double.parseDouble(jSpinner1.getValue().toString());
+                quantity = Integer.parseInt(jSpinner2.getValue().toString());
+            } catch (NumberFormatException e) {
+                // Handle invalid number format in spinners
+                JOptionPane.showMessageDialog(this, "Price and Quantity must be valid numbers", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // Validate price and quantity values
+            if (price <= 0) {
+                JOptionPane.showMessageDialog(this, "Price must be greater than zero", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            if (quantity <= 0) {
+                JOptionPane.showMessageDialog(this, "Quantity must be greater than zero", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // Connect to the database and insert the new record
+            Connection connection = DBConnection.getConnection();
+            String sql = "INSERT INTO PRODUCT (NAME, PRICE, QUANTITY) VALUES(?,?,?)";
+            PreparedStatement statement = connection.prepareStatement(sql);
+
+            // Set the parameters for the prepared statement
+            statement.setString(1, name);
+            statement.setDouble(2, price);
+            statement.setInt(3, quantity);
+
+            // Execute the statement
+            statement.execute();
+
+            // Refresh the data in the UI
+            fetchRows();
+
+            // Clear the input fields
+            nameToAddTField.setText("");
+            jSpinner1.setValue(0.00);
+            jSpinner2.setValue(0);
+        } catch (SQLException ex) {
+            // Handle SQL exceptions
+            JOptionPane.showMessageDialog(this, "SQL error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        } catch (Exception e) {
+            // Handle all other exceptions
+            JOptionPane.showMessageDialog(this, "An unexpected error occurred: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_jButton2ActionPerformed
+
+    private void nameToAddTFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nameToAddTFieldActionPerformed
+        String name = nameToAddTField.getText().trim();
+        if (name.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Name cannot be empty", "Error", JOptionPane.ERROR_MESSAGE);
+            nameToAddTField.setForeground(Color.red);
+            return;
+        }
+        nameToAddTField.setForeground(Color.BLACK);
+    }//GEN-LAST:event_nameToAddTFieldActionPerformed
+
+    private void ProductSearchTextBox1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ProductSearchTextBox1ActionPerformed
+        fetchRows();
+    }//GEN-LAST:event_ProductSearchTextBox1ActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JTextField ProductSearchTextBox;
+    private javax.swing.JTextField ProductSearchTextBox1;
     private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton2;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JSpinner jSpinner1;
+    private javax.swing.JSpinner jSpinner2;
     private javax.swing.JTable jTable1;
+    private javax.swing.JTextField nameToAddTField;
     // End of variables declaration//GEN-END:variables
 }
