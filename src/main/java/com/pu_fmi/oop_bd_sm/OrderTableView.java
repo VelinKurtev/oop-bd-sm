@@ -151,10 +151,7 @@ public class OrderTableView extends javax.swing.JPanel {
     }
 
     private boolean populateClientNames() {
-//        if (clientNameToIdMap.size() < 1) {
-//            JOptionPane.showMessageDialog(this, "You need at least one Client and Product", "Not Enough Data", JOptionPane.ERROR_MESSAGE);
-//            return false;
-//        }
+        
         try {
             Connection connection = DBConnection.getConnection();
             String sql = "SELECT id, name FROM Client";
@@ -167,6 +164,11 @@ public class OrderTableView extends javax.swing.JPanel {
                 clientNameToIdMap.put(name, id);
                 jComboBox1.addItem(name);
             }
+            
+            if (clientNameToIdMap.size() < 1) {
+            JOptionPane.showMessageDialog(this, "You need at least one Client and Product", "Not Enough Data", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
         } catch (SQLException ex) {
             Logger.getLogger(OrderTableView.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -174,10 +176,6 @@ public class OrderTableView extends javax.swing.JPanel {
     }
 
     private boolean populateProductNames() {
-//        if (productNameToIdMap.size() < 1) {
-//            JOptionPane.showMessageDialog(this, "You need at least one Client and Product", "Not Enough Data", JOptionPane.ERROR_MESSAGE);
-//            return false;
-//        }
         try {
             Connection connection = DBConnection.getConnection();
             String sql = "SELECT id, name FROM PRODUCT";
@@ -190,6 +188,11 @@ public class OrderTableView extends javax.swing.JPanel {
                 productNameToIdMap.put(name, id);
                 jComboBox2.addItem(name);
             }
+            
+            if (productNameToIdMap.size() < 1) {
+            JOptionPane.showMessageDialog(this, "You need at least one Client and Product", "Not Enough Data", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
 
         } catch (SQLException ex) {
             Logger.getLogger(OrderTableView.class.getName()).log(Level.SEVERE, null, ex);
