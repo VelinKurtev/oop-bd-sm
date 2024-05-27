@@ -31,8 +31,9 @@ public class OrderTableView extends javax.swing.JPanel {
     /**
      * Creates new form OrderTableView
      */
-    private Map<String, Integer> clientNameToIdMap = new HashMap<>();
-    private Map<String, Integer> productNameToIdMap = new HashMap<>();
+    private final Map<String, Integer> clientNameToIdMap = new HashMap<>();
+    private final Map<String, Integer> productNameToIdMap = new HashMap<>();
+    private int _editedRowIndex = -1;
 
     public OrderTableView() {
         initComponents();
@@ -115,7 +116,6 @@ public class OrderTableView extends javax.swing.JPanel {
 
             int columnCount = resultSet.getMetaData().getColumnCount();
 
-            // Use ArrayList to dynamically store the results
             ArrayList<Object[]> results = new ArrayList<>();
 
             while (resultSet.next()) {
@@ -126,7 +126,6 @@ public class OrderTableView extends javax.swing.JPanel {
                 results.add(rowData);
             }
 
-            // Convert ArrayList to array
             Object[][] dataArray = new Object[results.size()][];
             for (int i = 0; i < results.size(); i++) {
                 dataArray[i] = results.get(i);
@@ -152,10 +151,10 @@ public class OrderTableView extends javax.swing.JPanel {
     }
 
     private boolean populateClientNames() {
-        if (clientNameToIdMap.size() < 1) {
-            JOptionPane.showMessageDialog(this, "You need at least one Client and Product", "Not Enough Data", JOptionPane.ERROR_MESSAGE);
-            return false;
-        }
+//        if (clientNameToIdMap.size() < 1) {
+//            JOptionPane.showMessageDialog(this, "You need at least one Client and Product", "Not Enough Data", JOptionPane.ERROR_MESSAGE);
+//            return false;
+//        }
         try {
             Connection connection = DBConnection.getConnection();
             String sql = "SELECT id, name FROM Client";
@@ -175,10 +174,10 @@ public class OrderTableView extends javax.swing.JPanel {
     }
 
     private boolean populateProductNames() {
-        if (productNameToIdMap.size() < 1) {
-            JOptionPane.showMessageDialog(this, "You need at least one Client and Product", "Not Enough Data", JOptionPane.ERROR_MESSAGE);
-            return false;
-        }
+//        if (productNameToIdMap.size() < 1) {
+//            JOptionPane.showMessageDialog(this, "You need at least one Client and Product", "Not Enough Data", JOptionPane.ERROR_MESSAGE);
+//            return false;
+//        }
         try {
             Connection connection = DBConnection.getConnection();
             String sql = "SELECT id, name FROM PRODUCT";
@@ -522,49 +521,111 @@ public class OrderTableView extends javax.swing.JPanel {
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        this.jDialog1.setLocationRelativeTo(this);
-        this.jDialog1.setVisible(true);
-        this.label1.setText("Edit Order");
-        this.jButton4.setText("Edit Order");
+        int selectedRowIndex = jTable1.getSelectedRow();
+        this.jComboBox1.removeAllItems();
+        this.jComboBox2.removeAllItems();
+        this.jComboBox3.removeAllItems();
+
+        if (selectedRowIndex == -1) {
+            JOptionPane.showMessageDialog(this, "Please select a row to edit.", "No Row Selected", JOptionPane.WARNING_MESSAGE);
+        } else {
+            if (populateProductNames() && populateClientNames()) {
+                this.jDialog1.setLocationRelativeTo(this);
+                this.jDialog1.setVisible(true);
+                this.label1.setText("Edit Order");
+                this.jButton4.setText("Edit Order");
+                _editedRowIndex = selectedRowIndex;
+
+                jComboBox2.addActionListener((java.awt.event.ActionEvent evt1) -> {
+                    jComboBox2ActionPerformed(evt1);
+                });
+            }
+        }
     }//GEN-LAST:event_jButton3ActionPerformed
 
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
-        try {
-            Connection connection = DBConnection.getConnection();
-            String sql = "INSERT INTO ORDERS (CLIENT_ID, PRODUCT_ID, QUANTITY, CREATED_AT, DELIVERED_AT) VALUES (?, ?, ?, ?, ?)";
-            PreparedStatement statement = connection.prepareStatement(sql);
+        if (this.jButton4.getText().equals("Add")) {
+            try {
+                Connection connection = DBConnection.getConnection();
+                String sql = "INSERT INTO ORDERS (CLIENT_ID, PRODUCT_ID, QUANTITY, CREATED_AT, DELIVERED_AT) VALUES (?, ?, ?, ?, ?)";
+                PreparedStatement statement = connection.prepareStatement(sql);
 
-            String selectedClientName = (String) jComboBox1.getSelectedItem();
-            String selectedProductName = (String) jComboBox2.getSelectedItem();
-            int quantity = Integer.parseInt(jComboBox3.getSelectedItem().toString());
-            Date createdAt = new Date(jCalendar1.getDate().getTime());
-            Date deliveredAt = new Date(jCalendar2.getDate().getTime());
+                String selectedClientName = (String) jComboBox1.getSelectedItem();
+                String selectedProductName = (String) jComboBox2.getSelectedItem();
+                int quantity = Integer.parseInt(jComboBox3.getSelectedItem().toString());
+                Date createdAt = new Date(jCalendar1.getDate().getTime());
+                Date deliveredAt = new Date(jCalendar2.getDate().getTime());
 
-            int clientId = clientNameToIdMap.get(selectedClientName);
-            int productId = productNameToIdMap.get(selectedProductName);
+                int clientId = clientNameToIdMap.get(selectedClientName);
+                int productId = productNameToIdMap.get(selectedProductName);
 
-            if (createdAt.after(deliveredAt)) {
-                JOptionPane.showMessageDialog(this, "The 'Created At' date must be before the 'Delivered At' date.", "Date Validation Error", JOptionPane.ERROR_MESSAGE);
-                return;
+                if (createdAt.after(deliveredAt)) {
+                    JOptionPane.showMessageDialog(this, "The 'Created At' date must be before the 'Delivered At' date.", "Date Validation Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                if (deliveredAt.before(createdAt)) {
+                    JOptionPane.showMessageDialog(this, "The 'Delivered At'  date must be after the 'Created At' date.", "Date Validation Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                statement.setInt(1, clientId);
+                statement.setInt(2, productId);
+                statement.setInt(3, quantity);
+                statement.setDate(4, new java.sql.Date(createdAt.getTime()));
+                statement.setDate(5, new java.sql.Date(deliveredAt.getTime()));
+
+                statement.executeUpdate();
+
+                fetchRows();
+                this.jDialog1.setVisible(false);
+            } catch (SQLException ex) {
+                Logger.getLogger(OrderTableView.class.getName()).log(Level.SEVERE, null, ex);
             }
+        } else {
+            try {
+                Connection connection = DBConnection.getConnection();
+                String sql = "UPDATE ORDERS SET CLIENT_ID = ?, PRODUCT_ID = ?, QUANTITY = ?, CREATED_AT = ?, DELIVERED_AT = ? WHERE ID = ?;";
+                PreparedStatement statement = connection.prepareStatement(sql);
 
-            if (deliveredAt.before(createdAt)) {
-                JOptionPane.showMessageDialog(this, "The 'Delivered At'  date must be after the 'Created At' date.", "Date Validation Error", JOptionPane.ERROR_MESSAGE);
-                return;
+                DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+                int ID = Integer.parseInt(model.getValueAt(_editedRowIndex, 0).toString());
+
+                String selectedClientName = (String) jComboBox1.getSelectedItem();
+                String selectedProductName = (String) jComboBox2.getSelectedItem();
+
+                int clientId = clientNameToIdMap.get(selectedClientName);
+                int productId = productNameToIdMap.get(selectedProductName);
+
+                int quantity = Integer.parseInt(jComboBox3.getSelectedItem().toString());
+                Date createdAt = new Date(jCalendar1.getDate().getTime());
+                Date deliveredAt = new Date(jCalendar2.getDate().getTime());
+
+                if (createdAt.after(deliveredAt)) {
+                    JOptionPane.showMessageDialog(this, "The 'Created At' date must be before the 'Delivered At' date.", "Date Validation Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                if (deliveredAt.before(createdAt)) {
+                    JOptionPane.showMessageDialog(this, "The 'Delivered At'  date must be after the 'Created At' date.", "Date Validation Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                statement.setInt(1, clientId);
+                statement.setInt(2, productId);
+                statement.setInt(3, quantity);
+                statement.setDate(4, createdAt);
+                statement.setDate(5, deliveredAt);
+                statement.setInt(6, ID);
+
+                statement.executeUpdate();
+
+                fetchRows();
+                this.jDialog1.setVisible(false);
+
+            } catch (SQLException ex) {
+                Logger.getLogger(OrderTableView.class.getName()).log(Level.SEVERE, null, ex);
             }
-
-            statement.setInt(1, clientId);
-            statement.setInt(2, productId);
-            statement.setInt(3, quantity);
-            statement.setDate(4, new java.sql.Date(createdAt.getTime()));
-            statement.setDate(5, new java.sql.Date(deliveredAt.getTime()));
-
-            statement.executeUpdate();
-
-            fetchRows();
-            this.jDialog1.setVisible(false);
-        } catch (SQLException ex) {
-            Logger.getLogger(OrderTableView.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_jButton4ActionPerformed
 

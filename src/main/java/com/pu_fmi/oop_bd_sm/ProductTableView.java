@@ -140,17 +140,14 @@ public class ProductTableView extends javax.swing.JPanel {
             statement.setInt(3, Integer.parseInt((String) updatedModel[3]));
             statement.setInt(4, Integer.parseInt((String) updatedModel[0]));
 
-            // Execute the update statement
             int rowsAffected = statement.executeUpdate();
 
-            // Check if the update was successful
             if (rowsAffected > 0) {
                 System.out.println("Row updated successfully in the database.");
             } else {
                 System.out.println("Failed to update row in the database.");
             }
         } catch (SQLException ex) {
-            ex.printStackTrace();
         }
     }
 
