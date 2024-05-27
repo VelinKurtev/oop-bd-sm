@@ -146,7 +146,7 @@ public class OrderTableView extends javax.swing.JPanel {
             jTable1.removeColumn(jTable1.getColumnModel().getColumn(0));
 
         } catch (SQLException ex) {
-            Logger.getLogger(ClientsTableView.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(OrderTableView.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -544,7 +544,7 @@ public class OrderTableView extends javax.swing.JPanel {
     }//GEN-LAST:event_jButton3ActionPerformed
 
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
-        if (this.jButton4.getText().equals("Add")) {
+        if (this.jButton4.getText().equals("Add Order")) {
             try {
                 Connection connection = DBConnection.getConnection();
                 String sql = "INSERT INTO ORDERS (CLIENT_ID, PRODUCT_ID, QUANTITY, CREATED_AT, DELIVERED_AT) VALUES (?, ?, ?, ?, ?)";
